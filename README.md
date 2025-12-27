@@ -1805,10 +1805,6 @@ Frontend runs at: **http://localhost:5173**
 
 ## 📚 Additional Documentation
 
-• **SETUP_GUIDE.md** - Detailed setup instructions for Windows/VSCode
-• **PROJECT_SUMMARY.md** - Complete feature list and project overview
-• **DIP_ENRICHMENT_STRATEGY.md** - Digital Image Processing pipeline details
-• **backend/DIP_USAGE_GUIDE.md** - DIP pipeline usage guide
 • **API Documentation** - Interactive docs at `http://localhost:8000/docs`
 
 ---
