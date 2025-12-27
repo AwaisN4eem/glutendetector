@@ -43,7 +43,10 @@ uploads/
 *.log
 logs/
 
-# Exclude other README files (keep only root README.md)
+# Exclude all .md files except root README.md
+*.md
+!README.md
+# Also exclude README files in subdirectories
 backend/README.md
 frontend/README.md
 
