@@ -1,0 +1,61 @@
+version: '3.8'
+
+# Development docker-compose with hot reload and volume mounting
+# Usage: docker-compose -f docker-compose.dev.yml up
+
+services:
+  # Backend service with live reload
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: glutenguard-backend-dev
+    ports:
+      - "8000:8000"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - DEBUG=true
+      - DATABASE_URL=sqlite:///./glutenguard.db
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - HUGGINGFACE_API_TOKEN=${HUGGINGFACE_API_TOKEN:-}
+      - DIP_DEBUG_MODE=true
+      - CORS_ORIGINS=http://localhost,http://localhost:80,http://localhost:5173,http://localhost:5174
+    volumes:
+      # Mount source code for live reload
+      - ./backend:/app
+      # Exclude venv to prevent conflicts
+      - /app/venv
+      - /app/__pycache__
+    restart: unless-stopped
+    networks:
+      - glutenguard-network
+    command: ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  # Frontend service with Vite dev server
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: glutenguard-frontend-dev
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      # Mount source code for hot reload
+      - ./frontend:/app
+      # Exclude node_modules to prevent conflicts
+      - /app/node_modules
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - glutenguard-network
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+
+networks:
+  glutenguard-network:
+    driver: bridge
+

@@ -1652,6 +1652,48 @@ pytest tests/test_cv_service.py
 
 ## 🚀 Quick Start
 
+### 🐳 Docker Quick Start (Recommended)
+
+**Easiest way to run GlutenGuard AI!**
+
+#### Prerequisites
+• **Docker Desktop** (Windows/Mac) or **Docker Engine** (Linux)
+• Download from: https://www.docker.com/products/docker-desktop/
+
+#### One-Command Start
+
+**Windows:**
+```batch
+docker-start.bat
+```
+
+**Linux/Mac:**
+```bash
+chmod +x docker-start.sh
+./docker-start.sh
+```
+
+**Or manually:**
+```bash
+docker-compose up -d
+```
+
+#### Access Application
+- **Frontend:** http://localhost
+- **Backend:** http://localhost:8000
+- **API Docs:** http://localhost:8000/docs
+
+#### Stop Services
+```bash
+docker-compose down
+```
+
+**📚 Full Docker Documentation:** [README.Docker.md](README.Docker.md) | [Quick Start](DOCKER_QUICKSTART.md)
+
+---
+
+### 💻 Manual Installation (Without Docker)
+
 ### Prerequisites
 
 • **Python 3.11** (⚠️ Important: Use 3.11, not newer versions!)

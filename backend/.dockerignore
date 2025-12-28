@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test and logs
+*.log
+logs/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Database (will be mounted as volume)
+*.db
+*.db-journal
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+README.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Development files
+test_*.py
+generate_sample_data.py
+generate_dip_report.py
+
+# Uploads (will be mounted as volume)
+uploads/*
+dip_debug_output/*
+
