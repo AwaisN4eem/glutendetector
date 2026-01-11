@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { FileText, Loader2, AlertCircle, Download, TrendingUp, Calendar, CheckCircle, XCircle } from 'lucide-react'
+import { FileText, Loader2, AlertCircle, CheckCircle, XCircle, BarChart3 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
 import { format } from 'date-fns'
+import ExplainButton from '../components/ExplainButton'
 
 const Reports = () => {
   const [loading, setLoading] = useState(false)
@@ -54,268 +55,264 @@ const Reports = () => {
     }
   }
   
-  const getCorrelationLabel = (score) => {
-    if (score >= 70) return { label: 'Strong', color: 'text-error-700 bg-error-50 border-error-200' }
-    if (score >= 40) return { label: 'Moderate', color: 'text-warning-700 bg-warning-50 border-warning-200' }
-    return { label: 'Weak', color: 'text-success-700 bg-success-50 border-success-200' }
-  }
-  
   return (
     <div className="max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-slate-900">Analysis Reports</h1>
-        <p className="text-neutral-600 mt-2">Comprehensive gluten-symptom correlation analysis</p>
-      </div>
-      
-      {/* Generate New Report */}
-      <div className="bg-white border border-primary-200 rounded-xl p-6 mb-8 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Generate New Report</h3>
-            <p className="text-sm text-neutral-600 mb-4">
-              Requires at least 10 meals and 10 symptoms for statistical analysis
+      <div className="space-y-8">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-white">Correlation Analysis Report</h1>
+          {correlation && (
+            <p className="text-sm text-gray-400 mt-2">
+              Generated: {format(new Date(), 'MMM d, yyyy h:mm a')}
             </p>
-            <div className="flex items-center space-x-3">
-              <label className="text-sm font-medium text-neutral-700">Analysis Period:</label>
-              <select
-                value={weeks}
-                onChange={(e) => setWeeks(parseInt(e.target.value))}
-                className="px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-slate-900"
-              >
-                <option value={2}>2 weeks</option>
-                <option value={4}>4 weeks</option>
-                <option value={6}>6 weeks</option>
-                <option value={8}>8 weeks</option>
-                <option value={12}>12 weeks</option>
-              </select>
-            </div>
-          </div>
-          <button
-            onClick={handleGenerateReport}
-            disabled={generating}
-            className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-colors font-medium shadow-sm"
-          >
-            {generating ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Generating...</span>
-              </>
-            ) : (
-              <>
-                <FileText className="w-5 h-5" />
-                <span>Generate Report</span>
-              </>
-            )}
-          </button>
+          )}
         </div>
         
-        {error && (
-          <div className="mt-4 p-3 bg-error-50 border border-error-200 rounded-lg flex items-start space-x-2">
-            <AlertCircle className="w-5 h-5 text-error-600 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-error-700">{error}</p>
+        {/* Generate New Report */}
+        <div className="bg-[#1a1f2e] border border-emerald-500/20 rounded-2xl p-6 shadow-xl">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-3">
+                <div className="w-10 h-10 bg-emerald-500/20 border border-emerald-500/30 rounded-lg flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-emerald-400" />
+                </div>
+                <h3 className="text-lg font-bold text-white">Generate Full Report</h3>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                Requires at least 10 meals and 10 symptoms for statistical analysis
+              </p>
+              <div className="flex items-center space-x-3">
+                <label className="text-sm font-medium text-gray-400">Analysis Period:</label>
+                <select
+                  value={weeks}
+                  onChange={(e) => setWeeks(parseInt(e.target.value))}
+                  className="px-4 py-2 bg-[#0a0e1a] border border-emerald-500/20 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none text-sm text-white shadow-sm"
+                >
+                  <option value={2}>2 weeks</option>
+                  <option value={4}>4 weeks</option>
+                  <option value={6}>6 weeks</option>
+                  <option value={8}>8 weeks</option>
+                  <option value={12}>12 weeks</option>
+                </select>
+              </div>
+            </div>
+            <button
+              onClick={handleGenerateReport}
+              disabled={generating}
+              className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl hover:from-emerald-500 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-all duration-300 font-medium shadow-xl hover:scale-105 transform"
+            >
+              {generating ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Generating...</span>
+                </>
+              ) : (
+                <>
+                  <FileText className="w-5 h-5" />
+                  <span>Generate Report</span>
+                </>
+              )}
+            </button>
+          </div>
+          
+          {error && (
+            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-start space-x-3 shadow-sm">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5 stroke-2" />
+              <p className="text-sm text-gray-400">{error}</p>
+            </div>
+          )}
+        </div>
+        
+        {/* Current Correlation Analysis */}
+        {loading && (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <Loader2 className="w-10 h-10 text-emerald-400 animate-spin mx-auto mb-4 stroke-2" />
+              <p className="text-sm text-gray-400">Calculating correlation...</p>
+            </div>
+          </div>
+        )}
+        
+        {!loading && correlation && (
+          <div className="bg-[#1a1f2e] border border-emerald-500/20 rounded-2xl p-8 space-y-6 shadow-xl">
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="w-12 h-12 bg-emerald-500/20 border border-emerald-500/30 rounded-lg flex items-center justify-center">
+                <BarChart3 className="w-6 h-6 text-emerald-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-white">Summary</h2>
+            </div>
+            
+            {/* Summary Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-[#0a0e1a] border border-emerald-500/20 rounded-xl p-5 shadow-sm">
+                <p className="text-xs text-gray-400 mb-2 font-medium">Data Period</p>
+                <p className="text-sm text-white font-medium">
+                  {correlation.start_date && correlation.end_date
+                    ? `${format(new Date(correlation.start_date), 'MMM d, yyyy')} - ${format(new Date(correlation.end_date), 'MMM d, yyyy')}`
+                    : 'N/A'}
+                </p>
+              </div>
+                <div className="bg-[#0a0e1a] border border-emerald-500/20 rounded-xl p-5 shadow-sm">
+                <p className="text-xs text-gray-400 mb-2 font-medium">Total Meals</p>
+                <p className="text-2xl font-semibold text-white">{correlation.total_meals || 0}</p>
+              </div>
+                <div className="bg-[#0a0e1a] border border-emerald-500/20 rounded-xl p-5 shadow-sm">
+                <p className="text-xs text-gray-400 mb-2 font-medium">Total Symptoms</p>
+                <p className="text-2xl font-semibold text-white">{correlation.total_symptoms || 0}</p>
+              </div>
+              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs text-gray-400 font-medium">Correlation</p>
+                  {correlation.correlation_score !== null && correlation.correlation_score !== undefined && (
+                    <ExplainButton
+                      type="correlation"
+                      correlationScore={correlation.correlation_score}
+                      pValue={correlation.p_value}
+                      totalMeals={correlation.total_meals || 0}
+                      totalSymptoms={correlation.total_symptoms || 0}
+                      className="text-xs"
+                    />
+                  )}
+                </div>
+                <p className="text-2xl font-semibold text-emerald-400">
+                  {correlation.correlation_score?.toFixed(1) || 'N/A'}%
+                </p>
+                {correlation.p_value !== null && correlation.p_value !== undefined && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    p&lt;{correlation.p_value < 0.001 ? '0.001' : correlation.p_value.toFixed(3)}
+                  </p>
+                )}
+              </div>
+            </div>
+            
+            {/* Statistical Analysis */}
+            <div className="bg-[#0a0e1a] border border-emerald-500/20 rounded-xl p-6 shadow-sm">
+              <h3 className="text-lg font-bold text-white mb-5">Statistical Analysis</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-400">Pearson Correlation:</span>
+                  <span className="text-sm font-medium text-white">
+                    {correlation.correlation_score ? (correlation.correlation_score / 100).toFixed(2) : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-400">P-value:</span>
+                  <span className="text-sm font-medium text-white">
+                    {correlation.p_value !== null && correlation.p_value !== undefined
+                      ? (correlation.p_value < 0.001 ? '<0.001' : correlation.p_value.toFixed(3))
+                      : 'N/A'}
+                    {correlation.p_value !== null && correlation.p_value < 0.05 && (
+                      <span className="ml-2 text-xs text-gray-400">(Highly significant)</span>
+                    )}
+                  </span>
+                </div>
+                {correlation.confidence_interval && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-400">Confidence Interval:</span>
+                    <span className="text-sm font-medium text-white">
+                      {correlation.confidence_interval[0]?.toFixed(2) || 'N/A'} - {correlation.confidence_interval[1]?.toFixed(2) || 'N/A'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Time-Lag Analysis */}
+            {correlation.time_lag_hours && correlation.time_lag_hours > 0 && (
+              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-white mb-4">Time-Lag Analysis</h3>
+                <div className="space-y-2">
+                  <p className="text-sm text-white">
+                    Optimal lag: {correlation.time_lag_hours} hours
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    Symptoms typically appear {correlation.time_lag_hours} hours after high-gluten meals
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {/* Recommendations */}
+            <div className="bg-[#0a0e1a] border border-emerald-500/20 rounded-xl p-6 shadow-sm">
+              <h3 className="text-lg font-bold text-white mb-4">Recommendations</h3>
+              <div className="space-y-2">
+                <p className="text-sm text-white">
+                  Based on the data, consider:
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-sm text-gray-400 ml-4">
+                  <li>Elimination diet trial (2 weeks)</li>
+                  <li>Consult healthcare provider</li>
+                  <li>Continue tracking for 2 more weeks</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Previous Reports */}
+        {reports.length > 0 && (
+          <div className="bg-[#1a1f2e] border border-emerald-500/20 rounded-2xl p-8 shadow-xl">
+            <h2 className="text-2xl font-bold text-white mb-6">Previous Reports</h2>
+            <div className="space-y-3">
+              {reports.map((report) => (
+                <div key={report.id} className="bg-[#0a0e1a] border border-emerald-500/20 rounded-xl p-5 hover:shadow-xl transition-all shadow-sm">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <span className="text-sm text-gray-400">
+                          {format(new Date(report.start_date), 'MMM d')} - {format(new Date(report.end_date), 'MMM d, yyyy')}
+                        </span>
+                        <span className={`px-2 py-1 rounded text-xs font-medium border ${
+                          report.gluten_intolerance_detected 
+                            ? 'bg-red-500/20 text-red-400 border-red-500/30' 
+                            : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                        }`}>
+                          {report.gluten_intolerance_detected ? 'Positive' : 'Negative'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-400">
+                        Correlation: <strong className="text-white">{report.correlation_score?.toFixed(1)}%</strong> • 
+                        Meals: {report.total_meals_logged} • 
+                        Symptoms: {report.total_symptoms_logged}
+                      </p>
+                      {report.recommendations && (
+                        <p className="text-sm text-gray-400 mt-2">{report.recommendations}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Empty State */}
+        {!loading && reports.length === 0 && !correlation && (
+          <div className="bg-[#1a1f2e] border border-emerald-500/30 rounded-2xl p-12 text-center shadow-xl">
+            <div className="w-16 h-16 bg-emerald-500/20 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-8 h-8 text-emerald-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">No reports yet</h3>
+            <p className="text-sm text-gray-400 mb-8">
+              You need at least 10 meals and 10 symptoms logged to generate your first report.
+            </p>
+            <div className="flex justify-center space-x-3">
+              <Link 
+                to="/upload-photo" 
+                className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl hover:from-emerald-500 hover:to-emerald-600 transition-all duration-300 font-medium shadow-xl hover:scale-105 transform"
+              >
+                Upload Photo
+              </Link>
+              <Link 
+                to="/timeline" 
+                className="px-6 py-3 bg-transparent text-emerald-400 border-2 border-emerald-500/30 rounded-xl hover:bg-emerald-500/10 transition-all duration-300 font-medium"
+              >
+                View Timeline
+              </Link>
+            </div>
           </div>
         )}
       </div>
-      
-      {/* Current Correlation Analysis */}
-      {loading && (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 text-primary-600 animate-spin mx-auto mb-4" />
-            <p className="text-neutral-600">Calculating correlation...</p>
-          </div>
-        </div>
-      )}
-      
-      {!loading && correlation && (
-        <div className="bg-white rounded-xl border border-neutral-200 p-8 mb-8 shadow-sm">
-          <h2 className="text-2xl font-semibold text-slate-900 mb-6">Current Correlation Analysis</h2>
-          
-          {/* Main Score */}
-          <div className="text-center py-8 bg-neutral-50 rounded-xl mb-6 border border-neutral-200">
-            <p className="text-sm text-neutral-600 mb-2 uppercase tracking-wide font-medium">Gluten-Symptom Correlation</p>
-            <div className="text-6xl font-semibold text-primary-600 mb-3">
-              {correlation.correlation_score.toFixed(1)}%
-            </div>
-            <span className={`inline-block px-4 py-2 rounded-lg font-semibold border ${getCorrelationLabel(correlation.correlation_score).color}`}>
-              {getCorrelationLabel(correlation.correlation_score).label} Correlation
-            </span>
-          </div>
-          
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="text-center p-4 bg-neutral-50 rounded-lg border border-neutral-200">
-              <p className="text-sm text-neutral-600 mb-1 font-medium">Statistical Confidence</p>
-              <p className="text-2xl font-semibold text-slate-900">{(correlation.confidence_level * 100).toFixed(1)}%</p>
-            </div>
-            
-            <div className="text-center p-4 bg-neutral-50 rounded-lg border border-neutral-200">
-              <p className="text-sm text-neutral-600 mb-1 font-medium">Statistical Significance</p>
-              <div className="flex items-center justify-center mt-2">
-                {correlation.significant ? (
-                  <>
-                    <CheckCircle className="w-6 h-6 text-success-600 mr-2" />
-                    <span className="text-lg font-semibold text-success-600">Yes (p&lt;0.05)</span>
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="w-6 h-6 text-neutral-400 mr-2" />
-                    <span className="text-lg font-semibold text-neutral-600">Not Yet</span>
-                  </>
-                )}
-              </div>
-            </div>
-            
-            <div className="text-center p-4 bg-neutral-50 rounded-lg border border-neutral-200">
-              <p className="text-sm text-neutral-600 mb-1 font-medium">Time Lag</p>
-              <p className="text-2xl font-semibold text-slate-900">
-                {correlation.time_lag_hours ? `${correlation.time_lag_hours}h` : 'Same day'}
-              </p>
-            </div>
-          </div>
-          
-          {/* Findings */}
-          <div className="space-y-4">
-            {/* Dose Response */}
-            {correlation.dose_response !== null && (
-              <div className={`p-4 rounded-lg border ${
-                correlation.dose_response ? 'bg-warning-50 border-warning-200' : 'bg-neutral-50 border-neutral-200'
-              }`}>
-                <div className="flex items-start space-x-3">
-                  <TrendingUp className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
-                    correlation.dose_response ? 'text-warning-600' : 'text-neutral-400'
-                  }`} />
-                  <div>
-                    <p className="font-semibold text-slate-900">Dose-Response Relationship</p>
-                    <p className="text-sm text-neutral-700 mt-1">
-                      {correlation.dose_response 
-                        ? 'Detected: Higher gluten intake correlates with worse symptoms'
-                        : 'Not detected: No clear dose-response pattern yet'
-                      }
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Time Lag Info */}
-            {correlation.time_lag_hours > 0 && (
-              <div className="p-4 bg-primary-50 border border-primary-200 rounded-lg">
-                <div className="flex items-start space-x-3">
-                  <Calendar className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-slate-900">Delayed Reaction Pattern</p>
-                    <p className="text-sm text-neutral-700 mt-1">
-                      Symptoms tend to appear approximately {correlation.time_lag_hours} hours after gluten exposure
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Interpretation */}
-            <div className={`p-4 rounded-lg border ${
-              correlation.correlation_score >= 60 
-                ? 'bg-error-50 border-error-200' 
-                : correlation.correlation_score >= 40 
-                  ? 'bg-warning-50 border-warning-200'
-                  : 'bg-success-50 border-success-200'
-            }`}>
-              <p className="font-semibold text-slate-900 mb-2">Clinical Interpretation</p>
-              <p className="text-sm text-neutral-800 leading-relaxed">
-                {correlation.correlation_score >= 60 && correlation.significant && (
-                  <>
-                    <strong>Strong evidence of gluten intolerance.</strong> Your symptoms show a statistically significant correlation with gluten intake. 
-                    We recommend consulting with a healthcare provider about gluten elimination and further diagnostic testing.
-                  </>
-                )}
-                {correlation.correlation_score >= 40 && correlation.correlation_score < 60 && (
-                  <>
-                    <strong>Moderate correlation detected.</strong> There appears to be a relationship between gluten and your symptoms. 
-                    Continue tracking for 2-4 more weeks to gather more data for a definitive conclusion.
-                  </>
-                )}
-                {correlation.correlation_score < 40 && (
-                  <>
-                    <strong>Low correlation.</strong> Gluten may not be the primary trigger for your symptoms. 
-                    Consider tracking other potential triggers (dairy, sugar, stress, etc.) or continue tracking to gather more data.
-                  </>
-                )}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Previous Reports */}
-      {reports.length > 0 && (
-        <div className="bg-white rounded-xl border border-neutral-200 p-8 shadow-sm">
-          <h2 className="text-2xl font-semibold text-slate-900 mb-6">Previous Reports</h2>
-          <div className="space-y-4">
-            {reports.map((report) => (
-              <div key={report.id} className="p-5 border border-neutral-200 rounded-lg hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <span className="text-sm font-medium text-neutral-600">
-                        {format(new Date(report.start_date), 'MMM d')} - {format(new Date(report.end_date), 'MMM d, yyyy')}
-                      </span>
-                      <span className={`px-3 py-1 rounded-lg text-xs font-semibold border ${
-                        report.gluten_intolerance_detected 
-                          ? 'bg-error-50 text-error-700 border-error-200' 
-                          : 'bg-success-50 text-success-700 border-success-200'
-                      }`}>
-                        {report.gluten_intolerance_detected ? 'Positive' : 'Negative'}
-                      </span>
-                    </div>
-                    <p className="text-sm text-neutral-600">
-                      Correlation: <strong className="text-slate-900">{report.correlation_score?.toFixed(1)}%</strong> • 
-                      Meals: {report.total_meals_logged} • 
-                      Symptoms: {report.total_symptoms_logged}
-                    </p>
-                    {report.recommendations && (
-                      <p className="text-sm text-neutral-700 mt-2 line-clamp-2">{report.recommendations}</p>
-                    )}
-                  </div>
-                  <button
-                    className="ml-4 p-2 text-neutral-400 hover:text-primary-600 transition-colors"
-                    title="Download report"
-                  >
-                    <Download className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      
-      {/* Empty State */}
-      {!loading && reports.length === 0 && !correlation && (
-        <div className="bg-white border border-neutral-200 rounded-xl p-12 text-center">
-          <FileText className="w-16 h-16 text-neutral-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-slate-900 mb-2">No Reports Yet</h3>
-          <p className="text-neutral-600 mb-6">
-            You need at least 10 meals and 10 symptoms logged to generate your first report.<br/>
-            Keep tracking your meals and symptoms for accurate analysis.
-          </p>
-          <div className="flex justify-center space-x-3">
-            <Link 
-              to="/upload-photo" 
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
-            >
-              Upload Photo
-            </Link>
-            <Link 
-              to="/timeline" 
-              className="px-4 py-2 bg-white text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors font-medium"
-            >
-              View Timeline
-            </Link>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

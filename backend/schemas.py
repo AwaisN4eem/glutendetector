@@ -108,9 +108,17 @@ class CorrelationAnalysis(BaseModel):
     significant: bool = Field(..., description="Whether correlation is statistically significant")
     time_lag_hours: Optional[float] = Field(None, description="Average time between gluten and symptoms")
     dose_response: Optional[bool] = Field(None, description="Whether more gluten = worse symptoms")
+    # Extended metadata for UI clarity
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    total_meals: int = 0
+    total_symptoms: int = 0
+    p_value: Optional[float] = None
+    confidence_interval: Optional[List[float]] = None
 
 class TimelineEntry(BaseModel):
     """Timeline entry for visualization"""
+    id: Optional[int] = None  # Meal or symptom ID
     timestamp: datetime
     entry_type: str  # meal or symptom
     description: str

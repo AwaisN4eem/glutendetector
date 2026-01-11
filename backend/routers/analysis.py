@@ -79,7 +79,12 @@ def get_correlation_analysis(
         )
     
     # Perform correlation analysis
-    correlation = analysis_service.calculate_correlation(meals, symptoms)
+    correlation = analysis_service.calculate_correlation(
+        meals,
+        symptoms,
+        start_date=start_date,
+        end_date=end_date
+    )
     
     return correlation
 
@@ -108,6 +113,7 @@ def get_timeline(
     
     for meal in meals:
         timeline.append(TimelineEntry(
+            id=meal.id,
             timestamp=meal.timestamp,
             entry_type="meal",
             description=meal.description,
@@ -118,6 +124,7 @@ def get_timeline(
     
     for symptom in symptoms:
         timeline.append(TimelineEntry(
+            id=symptom.id,
             timestamp=symptom.timestamp,
             entry_type="symptom",
             description=symptom.description,

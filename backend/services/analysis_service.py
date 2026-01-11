@@ -15,7 +15,13 @@ class AnalysisService:
         # Time lag windows to check (in hours)
         self.time_lag_windows = [1, 2, 3, 4, 6, 8, 12, 24, 48]
     
-    def calculate_correlation(self, meals: List[Meal], symptoms: List[Symptom]) -> CorrelationAnalysis:
+    def calculate_correlation(
+        self,
+        meals: List[Meal],
+        symptoms: List[Symptom],
+        start_date: datetime | None = None,
+        end_date: datetime | None = None
+    ) -> CorrelationAnalysis:
         """
         Calculate correlation between gluten exposure and symptoms
         
@@ -44,7 +50,13 @@ class AnalysisService:
             confidence_level=round(confidence_level, 3),
             significant=significant,
             time_lag_hours=best_lag,
-            dose_response=dose_response
+            dose_response=dose_response,
+            start_date=start_date,
+            end_date=end_date,
+            total_meals=len(meals),
+            total_symptoms=len(symptoms),
+            p_value=round(p_value, 3) if p_value is not None else None,
+            confidence_interval=None  # Placeholder; add CI computation if/when needed
         )
     
     def _create_daily_timeseries(self, meals: List[Meal], symptoms: List[Symptom]) -> Dict[str, Dict]:
@@ -225,6 +237,7 @@ class AnalysisService:
         for meal in meals:
             if meal.timestamp >= cutoff:
                 timeline.append(TimelineEntry(
+                    id=meal.id,
                     timestamp=meal.timestamp,
                     entry_type="meal",
                     description=meal.description[:100] if meal.description else "",
@@ -236,6 +249,7 @@ class AnalysisService:
         for symptom in symptoms:
             if symptom.timestamp >= cutoff:
                 timeline.append(TimelineEntry(
+                    id=symptom.id,
                     timestamp=symptom.timestamp,
                     entry_type="symptom",
                     description=symptom.description[:100] if symptom.description else "",

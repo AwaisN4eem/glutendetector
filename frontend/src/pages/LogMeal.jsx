@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Utensils, Loader2, CheckCircle, AlertCircle, Mic, MicOff, Calendar, Clock, Edit2, X } from 'lucide-react'
+import { Loader2, AlertCircle, Mic, MicOff, Calendar, Clock, Edit2, X, Utensils, CheckCircle2 } from 'lucide-react'
 import { api } from '../api/client'
 
 const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
@@ -17,7 +17,6 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
   const recognitionRef = useRef(null)
   const [usedVoiceInput, setUsedVoiceInput] = useState(false)
   const [speechSupported, setSpeechSupported] = useState(false)
-  const [micAvailable, setMicAvailable] = useState(false)
   
   // Date/time state
   const [useCustomDateTime, setUseCustomDateTime] = useState(false)
@@ -27,9 +26,8 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
   // Edit mode state
   const [isEditMode, setIsEditMode] = useState(!!editMeal)
   
-  // Check browser compatibility and microphone availability
+  // Check browser compatibility
   useEffect(() => {
-    // Check if Web Speech API is supported
     const isSpeechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window
     setSpeechSupported(isSpeechSupported)
     
@@ -42,19 +40,15 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
       
       recognitionInstance.onstart = () => {
         setIsListening(true)
-        setMicAvailable(true)
       }
       
       recognitionInstance.onresult = (event) => {
-        let interimTranscript = ''
         let finalTranscript = ''
         
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript
           if (event.results[i].isFinal) {
             finalTranscript += transcript + ' '
-          } else {
-            interimTranscript += transcript
           }
         }
         
@@ -65,36 +59,26 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
       }
       
       recognitionInstance.onerror = (event) => {
-        console.error('Speech recognition error:', event.error)
         setIsRecording(false)
         setIsListening(false)
         
         let errorMessage = ''
         switch (event.error) {
           case 'not-allowed':
-            errorMessage = 'Microphone permission denied. Please allow microphone access in your browser settings and try again.'
-            setMicAvailable(false)
+            errorMessage = 'Microphone access denied. Enable in browser settings.'
             break
           case 'no-speech':
-            errorMessage = 'No speech detected. Please speak clearly and try again.'
+            errorMessage = 'No speech detected. Speak clearly and try again.'
             break
           case 'audio-capture':
-            errorMessage = 'No microphone found. Please connect a microphone and try again.'
-            setMicAvailable(false)
-            break
-          case 'network':
-            errorMessage = 'Network error. Please check your internet connection.'
-            break
-          case 'service-not-allowed':
-            errorMessage = 'Speech recognition service is not available. Please try again later.'
+            errorMessage = 'No microphone found. Connect a microphone and try again.'
             break
           default:
-            errorMessage = `Speech recognition error: ${event.error}. Please try again.`
+            errorMessage = `Speech recognition error: ${event.error}`
         }
         
         if (errorMessage) {
           setError(errorMessage)
-          // Clear error after 5 seconds
           setTimeout(() => setError(null), 5000)
         }
       }
@@ -106,17 +90,6 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
       
       setRecognition(recognitionInstance)
       recognitionRef.current = recognitionInstance
-      
-      // Check microphone availability
-      navigator.mediaDevices?.getUserMedia({ audio: true })
-        .then(() => {
-          setMicAvailable(true)
-        })
-        .catch((err) => {
-          console.log('Microphone check:', err)
-          // Don't set error here, just mark as unavailable
-          // User will get error when they try to use it
-        })
     }
     
     return () => {
@@ -142,27 +115,16 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
     }
   }, [editMeal])
   
-  // Get browser name for better error messages
-  const getBrowserName = () => {
-    const userAgent = navigator.userAgent.toLowerCase()
-    if (userAgent.includes('chrome') && !userAgent.includes('edg')) return 'Chrome'
-    if (userAgent.includes('edg')) return 'Edge'
-    if (userAgent.includes('firefox')) return 'Firefox'
-    if (userAgent.includes('safari') && !userAgent.includes('chrome')) return 'Safari'
-    return 'your browser'
-  }
-  
   // Voice recording handlers
   const startRecording = () => {
     if (!speechSupported) {
-      const browserName = getBrowserName()
-      setError(`Voice input is not supported in ${browserName}. Please use Google Chrome or Microsoft Edge for voice input, or type your meal description instead.`)
-      setTimeout(() => setError(null), 8000)
+      setError('Voice input is not supported in this browser. Use Chrome or Edge for voice input.')
+      setTimeout(() => setError(null), 5000)
       return
     }
     
     if (!recognitionRef.current) {
-      setError('Speech recognition failed to initialize. Please refresh the page and try again.')
+      setError('Speech recognition failed to initialize. Refresh the page and try again.')
       return
     }
     
@@ -171,22 +133,18 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
       setError(null)
       recognitionRef.current.start()
     } catch (err) {
-      console.error('Error starting recognition:', err)
-      
-      // Check if recognition is already running
       if (err.message?.includes('already started') || err.name === 'InvalidStateError') {
-        // Try to stop and restart
         try {
           recognitionRef.current.stop()
           setTimeout(() => {
             recognitionRef.current.start()
           }, 100)
         } catch (retryErr) {
-          setError('Voice recognition is already running. Please wait a moment and try again.')
+          setError('Voice recognition is already running. Wait a moment and try again.')
           setIsRecording(false)
         }
       } else {
-        setError('Failed to start voice recording. Please check your microphone permissions and try again.')
+        setError('Failed to start voice recording. Check microphone permissions.')
         setIsRecording(false)
       }
     }
@@ -202,7 +160,6 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    // Stop recording if active
     if (isRecording) {
       stopRecording()
     }
@@ -217,7 +174,6 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
     setSuccess(false)
     
     try {
-      // Build timestamp if custom date/time is used
       let timestamp = null
       if (useCustomDateTime) {
         const dateTimeString = `${customDate}T${customTime}:00`
@@ -226,7 +182,6 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
       
       let response
       if (isEditMode && editMeal) {
-        // Update existing meal
         response = await api.updateMeal(editMeal.id, {
           description: description.trim(),
           meal_type: mealType,
@@ -234,7 +189,6 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
           timestamp: timestamp
         })
       } else {
-        // Create new meal
         response = await api.createMeal({
           description: description.trim(),
           meal_type: mealType,
@@ -268,82 +222,86 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
     }
   }
   
-  const getGlutenRiskColor = (score) => {
-    if (score >= 70) return { text: 'text-error-700', bg: 'bg-error-50', border: 'border-error-200' }
-    if (score >= 30) return { text: 'text-warning-700', bg: 'bg-warning-50', border: 'border-warning-200' }
-    return { text: 'text-success-700', bg: 'bg-success-50', border: 'border-success-200' }
+  const getGlutenRiskBadge = (score) => {
+    if (score >= 100) {
+      return { bg: 'bg-error', text: 'text-white', border: 'border-error', label: 'Critical' }
+    }
+    if (score >= 71) {
+      return { bg: 'bg-error-light', text: 'text-error', border: 'border-error-border', label: 'High' }
+    }
+    if (score >= 31) {
+      return { bg: 'bg-warning-light', text: 'text-warning', border: 'border-warning-border', label: 'Medium' }
+    }
+    return { bg: 'bg-success-light', text: 'text-success', border: 'border-success-border', label: 'Low' }
   }
   
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="bg-white rounded-xl border border-neutral-200 shadow-sm p-8">
+      <div className="space-y-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-2">
-            <div className="p-3 bg-primary-50 rounded-lg">
-              <Utensils className="w-6 h-6 text-primary-600" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-semibold text-slate-900">
-                {isEditMode ? 'Edit Meal' : 'Log Meal'}
-              </h2>
-              <p className="text-sm text-neutral-600">
-                {isEditMode ? 'Update meal details and AI will re-analyze' : 'Track your food intake with AI-powered gluten detection'}
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 bg-emerald-500/20 border border-emerald-500/30 rounded-xl flex items-center justify-center glow-green">
+            <Utensils className="w-6 h-6 text-emerald-400 stroke-2" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-white">Log Meal</h1>
+            {isEditMode && editMeal && (
+              <p className="text-sm text-gray-400 mt-1">
+                Editing meal from {new Date(editMeal.timestamp).toLocaleString()}
               </p>
-            </div>
+            )}
           </div>
         </div>
         
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Custom Date/Time Toggle */}
-          <div>
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={useCustomDateTime}
-                onChange={(e) => setUseCustomDateTime(e.target.checked)}
-                className="w-4 h-4 text-primary-600 border-neutral-300 rounded focus:ring-primary-500"
-              />
-              <span className="text-sm font-medium text-slate-900 flex items-center space-x-1">
-                <Calendar className="w-4 h-4" />
-                <span>Use custom date and time</span>
-              </span>
+          {/* Meal Description */}
+          <div className="bg-[#1a1f2e] border border-emerald-500/20 rounded-2xl p-6 shadow-xl glow-green">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-3">
+              Meal Description
             </label>
+            <textarea
+              id="description"
+              rows={6}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Example: Roti with chicken curry and dal"
+              className="w-full px-4 py-3 bg-[#0a0e1a] border border-emerald-500/20 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none text-sm text-white placeholder-gray-500 resize-y min-h-[120px] transition-all"
+              required
+            />
             
-            {useCustomDateTime && (
-              <div className="mt-3 grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="customDate" className="block text-xs font-medium text-neutral-700 mb-1">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    id="customDate"
-                    value={customDate}
-                    onChange={(e) => setCustomDate(e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-slate-900"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="customTime" className="block text-xs font-medium text-neutral-700 mb-1">
-                    Time
-                  </label>
-                  <input
-                    type="time"
-                    id="customTime"
-                    value={customTime}
-                    onChange={(e) => setCustomTime(e.target.value)}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-slate-900"
-                  />
-                </div>
+            {/* Voice Input Button */}
+            {speechSupported && (
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={loading}
+                  className={`inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl border transition-all font-medium glow-green ${
+                    isRecording || isListening
+                      ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400 shadow-lg animate-pulse'
+                      : 'bg-transparent border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/50'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {isRecording || isListening ? (
+                    <>
+                      <MicOff className="w-5 h-5" />
+                      <span>Listening...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="w-5 h-5" />
+                      <span>Voice Input</span>
+                    </>
+                  )}
+                </button>
               </div>
             )}
           </div>
+          
           {/* Meal Type */}
-          <div>
-            <label className="block text-sm font-medium text-slate-900 mb-3">
+          <div className="bg-[#1a1f2e] border border-emerald-500/20 rounded-2xl p-6 shadow-xl glow-green">
+            <label className="block text-sm font-medium text-gray-300 mb-3">
               Meal Type
             </label>
             <div className="grid grid-cols-4 gap-3">
@@ -352,10 +310,10 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
                   key={type}
                   type="button"
                   onClick={() => setMealType(type)}
-                  className={`px-4 py-3 rounded-lg font-medium capitalize transition-colors ${
+                  className={`px-4 py-3 rounded-xl font-medium capitalize transition-all border ${
                     mealType === type
-                      ? 'bg-primary-600 text-white shadow-sm'
-                      : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                      ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white border-emerald-500 shadow-lg glow-green'
+                      : 'bg-transparent text-gray-400 border border-emerald-500/20 hover:bg-emerald-500/10 hover:text-emerald-400'
                   }`}
                 >
                   {type}
@@ -364,69 +322,61 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
             </div>
           </div>
           
-          {/* Description */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label htmlFor="description" className="block text-sm font-medium text-slate-900">
-                Meal Description
-              </label>
-              {/* Voice Input Button */}
-              <div className="flex items-center space-x-2">
-                {speechSupported && (
-                  <button
-                    type="button"
-                    onClick={isRecording ? stopRecording : startRecording}
-                    disabled={loading}
-                    className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                      isRecording || isListening
-                        ? 'bg-error-100 text-error-700 hover:bg-error-200 animate-pulse'
-                        : 'bg-primary-50 text-primary-700 hover:bg-primary-100'
-                    } disabled:opacity-50 disabled:cursor-not-allowed shadow-sm`}
-                    title={
-                      isRecording || isListening
-                        ? 'Click to stop recording'
-                        : 'Click to start voice input (speak your meal description)'
-                    }
-                  >
-                    {isRecording || isListening ? (
-                      <>
-                        <MicOff className="w-4 h-4" />
-                        <span>{isListening ? 'Listening...' : 'Stop'}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Mic className="w-4 h-4" />
-                        <span>Voice Input</span>
-                      </>
-                    )}
-                  </button>
-                )}
-                {!speechSupported && (
-                  <div className="flex items-center space-x-1 text-xs text-neutral-500" title="Voice input requires Chrome or Edge browser">
-                    <Mic className="w-3 h-3 opacity-50" />
-                    <span>Voice not available</span>
-                  </div>
-                )}
+          {/* Custom Date/Time */}
+          <div className="bg-[#1a1f2e] border border-emerald-500/20 rounded-2xl p-6 shadow-xl glow-green">
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={useCustomDateTime}
+                onChange={(e) => setUseCustomDateTime(e.target.checked)}
+                className="w-5 h-5 text-emerald-500 border-emerald-500/30 rounded focus:ring-emerald-500 focus:ring-2 bg-[#0a0e1a]"
+              />
+              <span className="text-sm text-gray-300 flex items-center space-x-2">
+                <Calendar className="w-4 h-4 text-emerald-400" />
+                <span>Use custom date and time</span>
+              </span>
+            </label>
+            
+            {useCustomDateTime && (
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="customDate" className="block text-xs font-medium text-gray-400 mb-2">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    id="customDate"
+                    value={customDate}
+                    onChange={(e) => setCustomDate(e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 bg-[#0a0e1a] border border-emerald-500/20 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="customTime" className="block text-xs font-medium text-gray-400 mb-2">
+                    Time
+                  </label>
+                  <input
+                    type="time"
+                    id="customTime"
+                    value={customTime}
+                    onChange={(e) => setCustomTime(e.target.value)}
+                    className="w-full px-3 py-2 bg-[#0a0e1a] border border-emerald-500/20 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none text-sm text-white"
+                  />
+                </div>
               </div>
-            </div>
-            <textarea
-              id="description"
-              rows={6}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="e.g., Sandwich with wheat bread, turkey, lettuce, and tomato. Also had chips and an apple."
-              className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none text-slate-900 placeholder-neutral-400"
-              required
-            />
-            <p className="text-xs text-neutral-500 mt-2">
-              Include all ingredients, preparation methods, and brands when possible for accurate analysis.
-              {speechSupported && (
-                <span className="block mt-1">
-                  💡 Tip: Click "Voice Input" to speak your meal description (works best in Chrome or Edge).
-                </span>
-              )}
-            </p>
+            )}
           </div>
+          
+          {/* Analysis Preview */}
+          {description.trim() && (
+            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 glow-green">
+              <p className="text-xs text-gray-400 mb-2 font-medium">Analysis Preview</p>
+              <p className="text-sm text-gray-300">
+                Analysis will appear after submission
+              </p>
+            </div>
+          )}
           
           {/* Submit Button */}
           <div className="flex space-x-3">
@@ -434,21 +384,20 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
               <button
                 type="button"
                 onClick={onCancelEdit}
-                className="flex-1 px-6 py-3 bg-neutral-100 text-neutral-700 rounded-lg hover:bg-neutral-200 flex items-center justify-center space-x-2 transition-colors font-medium"
+                className="flex-1 px-6 py-3 bg-transparent text-gray-400 border border-emerald-500/20 rounded-xl hover:bg-emerald-500/10 hover:text-emerald-400 transition-colors font-medium glow-green"
               >
-                <X className="w-5 h-5" />
-                <span>Cancel</span>
+                Cancel
               </button>
             )}
             <button
               type="submit"
               disabled={loading || !description.trim() || isRecording}
-              className={`${isEditMode && onCancelEdit ? 'flex-1' : 'w-full'} px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-colors font-medium shadow-sm`}
+              className={`${isEditMode && onCancelEdit ? 'flex-1' : 'w-full'} px-6 py-4 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl hover:from-emerald-500 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition-all duration-300 font-medium shadow-xl glow-green-strong hover:scale-105 transform`}
             >
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Analyzing...</span>
+                  <span>Processing...</span>
                 </>
               ) : (
                 <>
@@ -460,7 +409,7 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
                   ) : (
                     <>
                       <Utensils className="w-5 h-5" />
-                      <span>Log Meal</span>
+                      <span>Save Meal</span>
                     </>
                   )}
                 </>
@@ -471,58 +420,52 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
         
         {/* Error */}
         {error && (
-          <div className="mt-6 p-4 bg-error-50 border border-error-200 rounded-lg flex items-start space-x-3">
-            <AlertCircle className="w-5 h-5 text-error-600 flex-shrink-0 mt-0.5" />
+          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-start space-x-3 glow-green">
+            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5 stroke-2" />
             <div>
-              <p className="font-medium text-error-900">Error</p>
-              <p className="text-sm text-error-700 mt-1">{error}</p>
+              <p className="font-medium text-white">Error</p>
+              <p className="text-sm text-gray-400 mt-1">{error}</p>
             </div>
           </div>
         )}
         
         {/* Success + Results */}
         {success && result && (
-          <div className="mt-6 space-y-4">
-            <div className="p-4 bg-success-50 border border-success-200 rounded-lg flex items-center space-x-3">
-              <CheckCircle className="w-6 h-6 text-success-600 flex-shrink-0" />
+          <div className="space-y-4">
+            <div className="bg-emerald-500/20 border border-emerald-500/30 rounded-xl p-4 flex items-center space-x-3 shadow-xl glow-green">
+              <CheckCircle2 className="w-6 h-6 text-emerald-400 flex-shrink-0" />
               <div>
-                <p className="font-medium text-success-900">Meal Logged Successfully</p>
-                <p className="text-sm text-success-700 mt-1">AI analysis complete</p>
+                <p className="font-medium text-white">Meal logged successfully</p>
+                <p className="text-xs text-gray-400 mt-1">Analysis complete</p>
               </div>
             </div>
             
             {/* Analysis Results */}
-            <div className="p-6 bg-neutral-50 border border-neutral-200 rounded-lg space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-slate-900">Gluten Risk Analysis</h3>
-                <div className={`px-4 py-2 rounded-lg border ${getGlutenRiskColor(result.gluten_risk_score).bg} ${getGlutenRiskColor(result.gluten_risk_score).border}`}>
-                  <span className={`font-semibold text-xl ${getGlutenRiskColor(result.gluten_risk_score).text}`}>
-                    {result.gluten_risk_score}/100
-                  </span>
-                </div>
+            <div className="bg-[#1a1f2e] border border-emerald-500/20 rounded-2xl p-6 space-y-4 shadow-xl glow-green">
+              <div className="flex items-center justify-between pb-4 border-b border-emerald-500/20">
+                <h3 className="text-lg font-bold text-white">Analysis Results</h3>
+                <span className={`px-4 py-2 rounded-xl text-xs font-medium border shadow-sm glow-green ${getGlutenRiskBadge(result.gluten_risk_score).bg} ${getGlutenRiskBadge(result.gluten_risk_score).text} ${getGlutenRiskBadge(result.gluten_risk_score).border}`}>
+                  {result.gluten_risk_score}/100
+                </span>
               </div>
               
               {result.detected_foods && result.detected_foods.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-neutral-700 mb-2">Detected Foods:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {result.detected_foods.map((food, idx) => (
-                      <span key={idx} className="px-3 py-1.5 bg-white border border-neutral-300 rounded-lg text-sm text-slate-900">
-                        {typeof food === 'string' ? food : food.name}
-                      </span>
-                    ))}
-                  </div>
+                <div className="bg-[#0a0e1a] rounded-xl p-4 border border-emerald-500/20">
+                  <p className="text-xs text-gray-400 mb-2 font-medium">Detected Foods</p>
+                  <p className="text-sm text-gray-300">
+                    {result.detected_foods.map(f => typeof f === 'string' ? f : f.name).join(', ')}
+                  </p>
                 </div>
               )}
               
               {result.contains_gluten && (
-                <div className="p-4 bg-error-50 border border-error-200 rounded-lg">
-                  <div className="flex items-start space-x-3">
-                    <AlertCircle className="w-5 h-5 text-error-600 flex-shrink-0 mt-0.5" />
+                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 shadow-sm">
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5 stroke-2" />
                     <div>
-                      <p className="text-sm font-semibold text-error-900 mb-1">Contains Gluten</p>
+                      <p className="text-sm font-medium text-white">Contains Gluten</p>
                       {result.gluten_sources && result.gluten_sources.length > 0 && (
-                        <p className="text-sm text-error-700">
+                        <p className="text-xs text-gray-400 mt-1">
                           Sources: {result.gluten_sources.join(', ')}
                         </p>
                       )}
@@ -533,33 +476,6 @@ const LogMeal = ({ editMeal = null, onCancelEdit = null }) => {
             </div>
           </div>
         )}
-      </div>
-      
-      {/* Tips */}
-      <div className="mt-6 p-6 bg-neutral-50 border border-neutral-200 rounded-xl">
-        <h3 className="font-semibold text-slate-900 mb-3">Guidelines for Accurate Tracking</h3>
-        <ul className="text-sm text-neutral-700 space-y-2">
-          <li className="flex items-start space-x-2">
-            <span className="text-primary-600 font-medium">•</span>
-            <span>Include all ingredients, even small ones</span>
-          </li>
-          <li className="flex items-start space-x-2">
-            <span className="text-primary-600 font-medium">•</span>
-            <span>Mention if something is gluten-free (e.g., "gluten-free bread")</span>
-          </li>
-          <li className="flex items-start space-x-2">
-            <span className="text-primary-600 font-medium">•</span>
-            <span>Note sauces and condiments (they often contain hidden gluten)</span>
-          </li>
-          <li className="flex items-start space-x-2">
-            <span className="text-primary-600 font-medium">•</span>
-            <span>Log meals as soon as possible for accurate timing correlation</span>
-          </li>
-          <li className="flex items-start space-x-2">
-            <span className="text-primary-600 font-medium">•</span>
-            <span>Consider using the Photo Upload feature for faster, more accurate logging</span>
-          </li>
-        </ul>
       </div>
     </div>
   )

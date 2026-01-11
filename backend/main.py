@@ -7,7 +7,7 @@ import os
 
 from config import settings
 from database import init_db, get_db
-from routers import meals, symptoms, photos, analysis, users
+from routers import meals, symptoms, photos, analysis, users, ai_coach, insights, explain, prediction, food_search
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -20,7 +20,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS + ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5175", "http://127.0.0.1:5175"],  # Ensure localhost is included
+    allow_origins=settings.cors_origins_list + ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5175", "http://127.0.0.1:5175"],  # Ensure localhost is included
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -39,6 +39,11 @@ app.include_router(meals.router, prefix="/api/meals", tags=["meals"])
 app.include_router(symptoms.router, prefix="/api/symptoms", tags=["symptoms"])
 app.include_router(photos.router, prefix="/api/photos", tags=["photos"])
 app.include_router(analysis.router, prefix="/api/analysis", tags=["analysis"])
+app.include_router(ai_coach.router, prefix="/api/ai-coach", tags=["ai-coach"])
+app.include_router(insights.router, prefix="/api/insights", tags=["insights"])
+app.include_router(explain.router, prefix="/api/explain", tags=["explain"])
+app.include_router(prediction.router, prefix="/api/prediction", tags=["prediction"])
+app.include_router(food_search.router, prefix="/api/food-search", tags=["food-search"])
 
 @app.on_event("startup")
 async def startup_event():
@@ -52,6 +57,14 @@ async def startup_event():
     db = next(get_db())
     initialize_gluten_database(db)
     print("✅ Gluten database initialized")
+    
+    # Initialize RAG vector store (FAISS index for semantic food search)
+    try:
+        from routers.food_search import rag_service
+        rag_service.build_food_index(db)
+        print("✅ RAG vector store initialized (FAISS + sentence-transformers)")
+    except Exception as e:
+        print(f"⚠️ RAG initialization failed: {e}")
 
 @app.get("/")
 async def root():

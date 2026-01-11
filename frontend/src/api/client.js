@@ -63,6 +63,37 @@ export const api = {
   
   getReports: () => 
     apiClient.get('/api/analysis/reports', { params: { user_id: USER_ID } }),
+  
+  // AI Coach
+  aiCoachChat: (question, days = 7) =>
+    apiClient.post('/api/ai-coach/chat', { question }, { params: { user_id: USER_ID, days } }),
+  
+  // Insights
+  getSmartInsights: (days = 7) =>
+    apiClient.get('/api/insights/smart-insights', { params: { user_id: USER_ID, days } }),
+  
+  // Explain
+  explainGlutenRisk: (foodName, glutenRisk, mealDescription = null) =>
+    apiClient.post('/api/explain/gluten-risk', { 
+      food_name: foodName, 
+      gluten_risk: glutenRisk, 
+      meal_description: mealDescription 
+    }),
+  
+  explainCorrelation: (correlationScore, pValue = null, totalMeals = 0, totalSymptoms = 0) =>
+    apiClient.post('/api/explain/correlation', {
+      correlation_score: correlationScore,
+      p_value: pValue,
+      total_meals: totalMeals,
+      total_symptoms: totalSymptoms
+    }),
+  
+  explainDataPoint: (entryType, entryId) =>
+    apiClient.get(`/api/explain/data-point/${entryType}/${entryId}`, { params: { user_id: USER_ID } }),
+  
+  // Prediction
+  predictSymptoms: (mealId) =>
+    apiClient.get(`/api/prediction/predict/${mealId}`, { params: { user_id: USER_ID } }),
 }
 
 export default apiClient
