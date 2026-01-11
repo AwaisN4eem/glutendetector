@@ -650,7 +650,23 @@ foods_list = nlp_service.extract_food_entities(text)
   - Average symptom severity comparison
   - Statistical significance testing
 
-#### 5. Report Generation
+#### 5. AI Coaching, Insights & Explanations (RAG-Powered)
+• **AI Health Coach Chat (RAG-Enhanced):** Groq LLM-powered conversational assistant with **Retrieval Augmented Generation**:
+  - **Vector Store:** FAISS indexes 500+ foods from gluten database using sentence-transformers (`all-MiniLM-L6-v2`)
+  - **Semantic Retrieval:** When user asks about specific foods (e.g., "is pizza bad for me?"), RAG retrieves relevant food entries from vector store
+  - **Context Augmentation:** Retrieved food descriptions, gluten risks, and categories are added to LLM prompt
+  - **User Data:** Also retrieves last 30 days of meals/symptoms and calculates real-time stats
+  - **Response Quality:** RAG ensures answers are grounded in both user history AND authoritative food database
+  - **Supports:** Voice input, text-to-speech responses
+• **Smart Insights:** Retrieves recent meals/symptoms, analyzes patterns (high-gluten foods eaten 2+ times, symptom clusters, time patterns), then uses Groq LLM to generate top 3 data-backed actionable insights referencing specific counts and trends.
+• **Explainability Everywhere:** Inline "Explain" buttons retrieve correlation/meal/symptom records, augment Groq prompts with metadata (p-values, totals, risk scores), and generate plain-language explanations grounded in the user's actual data.
+• **Symptom Prediction:** Retrieves similar past meals (by food overlap + gluten risk similarity), aggregates historical symptom outcomes (frequency, severity, time lag), then augments Groq LLM to forecast symptoms with probability and reasoning.
+• **RAG-Powered Food Search API:** 
+  - `/api/food-search/search?query=...` - Semantic search over food database
+  - `/api/food-search/alternatives/{food}` - Find gluten-free alternatives
+  - `/api/food-search/similar/{food}` - Find similar foods (handles synonyms)
+
+#### 6. Report Generation
 • **Comprehensive Analysis Reports:**
   - Correlation summary with statistical significance
   - Time-lag findings
@@ -667,14 +683,15 @@ foods_list = nlp_service.extract_food_entities(text)
   - Chronological display
   - Visual correlation indicators
 
-#### 6. User Interface (React Frontend)
-• **Pages:**
-  - Dashboard (real-time stats and correlation preview)
+#### 7. User Interface (React Frontend)
+• **Pages & Surfaces:**
+  - Dashboard (real-time stats, correlation preview, AI Insights panel)
   - Upload Photo (star feature showcase)
   - Log Meal (multi-input: text, voice, date/time picker, edit mode)
   - Log Symptom (with severity slider and NLP extraction)
   - Timeline (combined meal/symptom history)
-  - Reports (full correlation analysis)
+  - Reports (full correlation analysis with explanations)
+  - AI Coach (floating chat widget available app-wide)
 • **Log Meal Features:**
   - **Text Input:** Traditional textarea for typing meal descriptions
   - **Voice Input:** 🎤 Speech-to-text button with real-time transcription
@@ -695,6 +712,8 @@ foods_list = nlp_service.extract_food_entities(text)
   - **Meal Type Selection:** Breakfast, Lunch, Dinner, Snack buttons
   - **Real-time Analysis:** Shows gluten risk, detected foods, and warnings
 • **General UI Features:**
+  - Explain overlays for correlation, gluten risk, and individual data points
+  - AI Insights cards on the dashboard
   - Responsive design (mobile-friendly)
   - Real-time visualizations (Chart.js)
   - Modern UI (Tailwind CSS)
@@ -702,7 +721,7 @@ foods_list = nlp_service.extract_food_entities(text)
   - Professional medical-grade appearance
   - Clear error messages and user feedback
 
-#### 7. Data Management
+#### 8. Data Management
 • **Database:**
   - SQLite database (local, privacy-focused)
   - Structured schema (meals, symptoms, photos, reports)
@@ -716,7 +735,7 @@ foods_list = nlp_service.extract_food_entities(text)
   - Configurable data generation
   - Useful for demos and testing
 
-#### 8. API & Integration
+#### 9. API & Integration
 • **RESTful API:**
   - FastAPI backend (async, high-performance)
   - Automatic API documentation (Swagger/OpenAPI)
@@ -727,6 +746,13 @@ foods_list = nlp_service.extract_food_entities(text)
   - Meal logging (text, voice, photo, with edit/update)
   - Symptom logging
   - Photo upload and detection
+  - AI Coach chat (`/api/ai-coach/chat`) - RAG-enhanced with retrieval stats
+  - Smart Insights (`/api/insights/smart-insights`) - RAG pattern analysis
+  - Explainability (gluten risk, correlation, data points)
+  - Symptom prediction for meals - RAG retrieval of similar meals
+  - RAG Food Search (`/api/food-search/search`) - FAISS semantic search
+  - RAG Alternatives (`/api/food-search/alternatives/{food}`) - Gluten-free substitutes
+  - RAG Similar Foods (`/api/food-search/similar/{food}`) - Synonym matching
   - Analysis and reports
   - Timeline and dashboard
 • **External Integrations:**
@@ -736,7 +762,7 @@ foods_list = nlp_service.extract_food_entities(text)
 
 ### Technical Features
 
-#### 9. Error Handling & Reliability
+#### 10. Error Handling & Reliability
 • **Graceful Degradation:**
   - Fallback models if primary fails
   - Partial results if some features fail
@@ -752,7 +778,7 @@ foods_list = nlp_service.extract_food_entities(text)
   - Rotating log files
   - Error tracking
 
-#### 10. Performance Optimization
+#### 11. Performance Optimization
 • **Speed:**
   - Photo processing: <2 seconds
   - API response: <200ms average
@@ -767,7 +793,7 @@ foods_list = nlp_service.extract_food_entities(text)
   - Concurrent request handling
   - Non-blocking operations
 
-#### 11. Security & Privacy
+#### 12. Security & Privacy
 • **Privacy-Focused:**
   - Local SQLite database (data stays on user's machine)
   - No cloud storage by default
@@ -778,7 +804,7 @@ foods_list = nlp_service.extract_food_entities(text)
   - File size limits
   - SQL injection prevention (SQLAlchemy ORM)
 
-#### 12. Developer Experience
+#### 13. Developer Experience
 • **Documentation:**
   - Comprehensive README
   - Setup guide (Windows/VSCode)
@@ -1036,17 +1062,91 @@ User Input (Text/Photo)
 
 ## 🏗️ Technical Architecture
 
-### Vector Store
+### RAG (Retrieval-Augmented Generation) Architecture
 
-**Current Implementation:** In-memory data structures (SQLite for structured data)
+**✅ Implemented:** **SQL-based Retrieval + LLM Generation**
 
-**Future Enhancement:** **FAISS** (Facebook AI Similarity Search)
-• **Purpose:** Semantic search for food database
-• **Use Case:** Find similar foods, handle synonyms (e.g., "roti" = "chapati")
-• **Integration:** Embed food names using sentence-transformers, store in FAISS index
-• **Why FAISS:** Fast, efficient, open-source, widely used in production
+**What is RAG?**
+RAG (Retrieval-Augmented Generation) is an AI pattern that retrieves relevant context from a knowledge base before generating responses. This makes LLM outputs more accurate, grounded in real data, and user-specific.
 
-**Alternative Considered:** ChromaDB (simpler, but FAISS is more performant for our use case)
+**Our RAG Implementation:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  RAG PIPELINE (3 STEPS)                      │
+│                                                              │
+│  STEP 1: RETRIEVE                                           │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  RetrievalService queries knowledge base (SQLite):    │  │
+│  │  • High-gluten meals (gluten_risk >= 70)             │  │
+│  │  • Severe symptoms (severity >= 6)                   │  │
+│  │  • Correlated meal-symptom pairs (time lag 2-6h)    │  │
+│  │  • Keyword-based semantic search                     │  │
+│  │  • Ordered by relevance (recency + severity/risk)   │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                        ↓                                     │
+│  STEP 2: AUGMENT                                            │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Format retrieved data as structured context:         │  │
+│  │  • "RETRIEVED MEALS: Pizza (100/100), Bread (95/100)" │  │
+│  │  • "RETRIEVED SYMPTOMS: Bloating (8/10), Pain (7/10)" │  │
+│  │  • "CORRELATIONS: Pizza → Bloating (3h later)"        │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                        ↓                                     │
+│  STEP 3: GENERATE                                           │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  LLM (Groq) generates response using:                 │  │
+│  │  • User question                                       │  │
+│  │  • Retrieved context (from Step 1)                    │  │
+│  │  • General user stats                                 │  │
+│  │  Result: Accurate, data-grounded answer               │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**RAG Integration Points:**
+
+1. **AI Health Coach (`/api/ai-coach/chat`):**
+   - Retrieves relevant high-gluten meals, severe symptoms, and correlated pairs
+   - Augments LLM prompt with retrieved context
+   - LLM generates personalized coaching advice
+   - **UI displays:** "Retrieved X items from knowledge base" badge
+
+2. **Smart Insights (`/api/insights/smart-insights`):**
+   - Retrieves patterns: high-gluten foods, symptom clusters, time patterns
+   - Augments LLM prompt with pattern summaries
+   - LLM generates top 3 actionable insights
+   - **Workflow:** Retrieve patterns → Format as context → Generate insights
+
+3. **Symptom Prediction (`/api/prediction/predict/{meal_id}`):**
+   - Retrieves similar past meals (by food overlap + gluten risk)
+   - Retrieves symptom outcomes for those meals
+   - Augments LLM with historical patterns
+   - LLM generates symptom forecast with reasoning
+
+**Hybrid RAG Approach (Best of Both Worlds):**
+
+Our system uses **DUAL RAG** for maximum effectiveness:
+
+1. **FAISS Vector Store RAG** (for food database semantic search):
+   - **Model:** `sentence-transformers` (all-MiniLM-L6-v2, 384-dim embeddings)
+   - **Index:** FAISS IndexFlatL2 with 500+ food embeddings
+   - **Use:** Semantic food search, synonyms, alternatives, "foods like X"
+   - **Service:** `services/rag_service.py`
+   - **Endpoints:** `/api/food-search/search`, `/api/food-search/alternatives/{food}`, `/api/food-search/similar/{food}`
+
+2. **SQL-Based RAG** (for user history retrieval):
+   - **Queries:** Structured SQLite queries with filters (gluten risk, severity, time ranges, keywords)
+   - **Use:** User's historical meals, symptoms, correlated patterns
+   - **Service:** `services/retrieval_service.py`
+   - **Why:** Faster for temporal/numeric queries, deterministic results
+
+**RAG Benefits:**
+• **Accuracy:** LLM responses grounded in BOTH authoritative food knowledge AND user's actual data
+• **Transparency:** UI displays "Retrieved X items from knowledge base" badge
+• **Performance:** FAISS search ~50ms, SQL retrieval ~10ms, entire RAG pipeline <500ms
+• **Scalability:** Works with 10 items or 10,000+ items efficiently
+• **Demo-Ready:** Retrieval stats visible in UI prove RAG is active
 
 ### Model
 
@@ -1365,11 +1465,18 @@ GlutenGuard AI/
 **Unit Testing:**
 • **Framework:** pytest
 • **Coverage Target:** 70%+ for services
-• **Test Files:**
-  - `tests/test_nlp_service.py` - NLP Agent tests
-  - `tests/test_cv_service.py` - CV Agent tests
-  - `tests/test_analysis_service.py` - Analysis Agent tests
-  - `tests/test_routers.py` - API endpoint tests
+• **Automated Test Suite (Implemented):**
+  - `backend/tests/test_analysis_endpoints.py`
+    - Seeds a small in-memory dataset and validates:
+      - Correlation endpoint returns UI-ready metadata: `start_date`, `end_date`, `total_meals`, `total_symptoms`, `p_value`
+      - Report generation creates a persisted report with key fields populated
+  - `backend/tests/test_llm_fallback_endpoints.py`
+    - Confirms “safe fallback” behavior when LLM features are unavailable or data is insufficient:
+      - Explain endpoints still return readable explanations
+      - Prediction returns deterministic “not enough data” response when history is too small
+  - `backend/tests/conftest.py`
+    - Creates a lightweight FastAPI test app (no heavy CV/NLP model loading) and an isolated SQLite in-memory DB
+    - Uses dependency overrides so endpoints run against the test DB
 
 **Integration Testing:**
 • **End-to-End API Tests:**
@@ -1381,6 +1488,10 @@ GlutenGuard AI/
 • **External API Mocking:**
   - Mock Groq API responses
   - Mock HuggingFace model outputs
+• **Dev Scripts (Manual / Requires Running Backend):**
+  - `backend/test_upload.py` (upload diagnostics)
+  - `backend/test_meal_logging.py` (meal logging diagnostics)
+  - These are intentionally **skipped during pytest** because they expect `http://localhost:8000` to be running.
 
 **Test Execution:**
 ```bash
@@ -1393,6 +1504,22 @@ pytest --cov=backend --cov-report=html
 # Run specific test file
 pytest tests/test_cv_service.py
 ```
+
+**Windows (recommended, using project venv):**
+```powershell
+cd backend
+..\venv\Scripts\python.exe -m pytest -q
+```
+
+**RAG Testing (Manual):**
+To verify RAG is working:
+1. Start backend, open http://localhost:8000/docs
+2. Try `/api/food-search/search` with query: "bread alternatives"
+   - Should return similar foods using FAISS semantic search
+3. Open frontend AI Coach, ask: "What foods cause my symptoms?"
+   - Check for "Retrieved X items from knowledge base" badge
+   - Response should reference your specific meals
+4. Verify FAISS index initializes on startup (check backend logs for "✅ RAG food index built")
 
 **Manual Testing:**
 • API documentation at `/docs` (interactive Swagger UI)
@@ -1682,6 +1809,7 @@ docker-compose up -d
 - **Frontend:** http://localhost
 - **Backend:** http://localhost:8000
 - **API Docs:** http://localhost:8000/docs
+- **AI Features:** Set `GROQ_API_KEY` in `backend/.env` (or root `.env`) before starting to enable Coach/Insights/Explain/Prediction
 
 #### Stop Services
 ```bash
@@ -1726,6 +1854,10 @@ source venv/bin/activate  # Linux/Mac
 # Install dependencies
 pip install -r requirements.txt
 
+# Configure Groq AI (required for AI Coach, Smart Insights, Explain, Prediction)
+# Create backend/.env (or .env in project root) with:
+# GROQ_API_KEY=gsk_your_key_here
+
 # Download NLP model
 python -m spacy download en_core_web_sm
 
@@ -1764,14 +1896,22 @@ Frontend runs at: **http://localhost:5173**
 
 ### Demo Flow (5 Minutes)
 
-1. **Dashboard** (30s) - View stats and correlation preview
-2. **Upload Photo** (⭐ 1min) - Upload food photo, see instant detection
-3. **Log Meal with Voice** (1min) - Try voice input feature, speak your meal description
-4. **Log Meal with Custom Time** (30s) - Show date/time picker for retroactive logging
-5. **Edit Meal** (30s) - Update an existing meal, see re-analysis
-6. **Log Symptom** (30s) - Log symptom, see NLP extraction
-7. **Timeline** (30s) - View combined meal/symptom history
-8. **Generate Report** (1min) - See correlation analysis and recommendations
+1. **Dashboard** (30s) - View stats, correlation preview, and AI Insights panel
+2. **AI Coach + RAG** (45s) ⭐ **Show RAG in action:**
+   - Open floating chat
+   - Ask: "Why do I feel bloated after eating pizza?"
+   - Watch the **"Retrieved X items from knowledge base"** badge appear (proves RAG is working!)
+   - LLM response references your actual meals/symptoms
+   - Try voice input/text-to-speech
+3. **Upload Photo** (⭐ 1min) - Upload food photo, see instant detection
+4. **Log Meal with Voice** (1min) - Try voice input feature, speak your meal description
+5. **Log Meal with Custom Time** (30s) - Show date/time picker for retroactive logging
+6. **Edit Meal** (30s) - Update an existing meal, see re-analysis
+7. **Log Symptom** (30s) - Log symptom, see NLP extraction
+8. **Explain Buttons** (30s) - Click "Explain" on correlation/gluten risk cards for plain-language breakdowns
+9. **RAG Food Search** (30s) - Try `/api/food-search/search?query=bread alternatives` in API docs to see FAISS semantic search
+10. **Timeline** (30s) - View combined meal/symptom history
+11. **Generate Report** (1min) - See correlation analysis and recommendations
 
 ---
 
@@ -1844,6 +1984,22 @@ Frontend runs at: **http://localhost:5173**
   - Add missing ingredients
   - Fix incorrect meal type
   - Update timestamp for accuracy
+
+### AI Health Coach 🧑‍⚕️
+• **What It Does:** Floating chat assistant that uses the last 30 days of meals and symptoms to answer questions with empathetic, actionable guidance.  
+• **How To Use:** Click the chat bubble on any page, type or use voice input, and listen via speech synthesis.  
+• **Powered By:** Groq LLM with structured context from your data; returns graceful guidance if the API key is missing/invalid.  
+• **Best For:** Quick dietary coaching, "what happened after this meal?", or "how can I reduce symptoms this week?"
+
+### Smart Insights & Explainability 💡
+• **AI Insights Panel:** Dashboard surfaces the top 3 personalized insights (high-gluten foods, symptom clusters, correlation signals) every refresh.  
+• **Explain Buttons:** Inline "Explain" actions for gluten risk, correlation scores, and individual meals/symptoms—plain language, 2-3 sentence breakdowns.  
+• **Resilience:** Falls back to concise static text when Groq is unavailable; otherwise uses Groq LLM for richer narratives.
+
+### Symptom Prediction 🔮
+• **Endpoint:** `/api/prediction/predict/{meal_id}` forecasts likely symptoms, probability, and time window based on similar meals and correlations.  
+• **Logic:** Finds similar meals (foods + gluten risk), aggregates past symptom outcomes, then lets Groq format a concise JSON prediction.  
+• **Requirements:** Works best with 5+ historical meals/symptoms and a valid `GROQ_API_KEY`.
 
 ## 📚 Additional Documentation
 

@@ -3,7 +3,6 @@
 AI-powered gluten intolerance detection system with NLP and Computer Vision.
 
 ## Features
-
 • **Multi-modal Input:** Text, voice notes, and food photo detection
 • **NLP Intelligence:** 20+ features for symptom and food analysis
 • **Computer Vision:** Food detection with 90%+ accuracy using OpenCV

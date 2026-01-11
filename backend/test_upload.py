@@ -1,4 +1,13 @@
-"""Quick test script to diagnose upload issues"""
+"""Quick test script to diagnose upload issues
+
+NOTE: This is an integration script that expects a running backend on localhost:8000.
+Pytest will try to import any `test_*.py` file, so we explicitly skip it during pytest runs.
+"""
+
+import pytest
+
+pytest.skip("Integration script (requires running backend). Skipped during pytest.", allow_module_level=True)
+
 import requests
 import os
 

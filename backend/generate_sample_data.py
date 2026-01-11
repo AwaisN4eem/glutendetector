@@ -76,14 +76,15 @@ def create_demo_user(db):
     print(f"✅ Created demo user: {user.email}")
     return user
 
-def generate_sample_data(days=42):
+def generate_sample_data(days=42, end_date: datetime | None = None):
     """
     Generate realistic sample data showing gluten intolerance pattern
     
     Pattern: High gluten meals → symptoms 2-4 hours later
             Low gluten meals → few/no symptoms
     """
-    print(f"🔄 Generating {days} days of sample data...")
+    end_date = end_date or datetime.now()
+    print(f"🔄 Generating {days} days of sample data ending {end_date.date()} ...")
     
     init_db()
     db = SessionLocal()
@@ -97,7 +98,7 @@ def generate_sample_data(days=42):
         db.query(Symptom).filter(Symptom.user_id == user.id).delete()
         db.commit()
         
-        start_date = datetime.now() - timedelta(days=days)
+        start_date = end_date - timedelta(days=days)
         meal_count = 0
         symptom_count = 0
         
@@ -176,6 +177,7 @@ def generate_sample_data(days=42):
         
         db.commit()
         print(f"✅ Generated {meal_count} meals and {symptom_count} symptoms")
+        print(f"📊 Date range: {start_date.date()} → {end_date.date()}")
         print(f"📊 This data shows a clear correlation pattern for demo purposes")
         print(f"🌾 User: demo@glutenguard.ai / Password: demo123")
         
@@ -188,5 +190,15 @@ def generate_sample_data(days=42):
 if __name__ == "__main__":
     import sys
     days = int(sys.argv[1]) if len(sys.argv) > 1 else 42
-    generate_sample_data(days)
+    
+    # Optional second arg: end date in YYYY-MM-DD (e.g., 2026-01-10)
+    end_date_arg = sys.argv[2] if len(sys.argv) > 2 else None
+    end_date = None
+    if end_date_arg:
+        try:
+            end_date = datetime.strptime(end_date_arg, "%Y-%m-%d")
+        except ValueError:
+            print(f"⚠️ Invalid date format '{end_date_arg}'. Use YYYY-MM-DD. Falling back to today.")
+    
+    generate_sample_data(days, end_date)
 
